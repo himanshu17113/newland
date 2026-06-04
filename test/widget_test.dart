@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:newland/newland_scan_result.dart';
+import 'package:newlandscanner/newland_scan_result.dart';
 
 void main() {
   test('NewlandScanResult.fromNative parses valid map', () {

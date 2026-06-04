@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/services.dart';
-import 'package:newland/newland_scan_result.dart';
+import 'package:newlandscanner/newland_scan_result.dart';
 
 class Newlandscanner {
   static const EventChannel _eventChannel = EventChannel('newland_listenToScanner');
