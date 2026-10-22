@@ -29,32 +29,43 @@ class NewlandscannerPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         eventChannel = EventChannel(flutterPluginBinding.binaryMessenger, "newland_listenToScanner")
         eventChannel.setStreamHandler(object : EventChannel.StreamHandler {
             override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                unregisterScanReceiver()
+
                 val action = (arguments as? String) ?: "nlscan.action.SCANNER_RESULT"
-                scanReceiver = BarcodeScanReceiver(events)
-                val context = flutterPluginBinding.applicationContext
+                val receiver = BarcodeScanReceiver(events)
+                scanReceiver = receiver
+                val context = applicationContext ?: flutterPluginBinding.applicationContext
                 val filter = IntentFilter(action)
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     context.registerReceiver(
-                        scanReceiver,
+                        receiver,
                         filter,
                         Context.RECEIVER_EXPORTED
                     )
                 } else {
                     context.registerReceiver(
-                        scanReceiver,
+                        receiver,
                         filter
                     )
                 }
             }
 
             override fun onCancel(arguments: Any?) {
-                scanReceiver?.let {
-                    applicationContext?.unregisterReceiver(it)
-                    scanReceiver = null
-                }
+                unregisterScanReceiver()
             }
         })
+    }
+
+    private fun unregisterScanReceiver() {
+        scanReceiver?.let { receiver ->
+            try {
+                applicationContext?.unregisterReceiver(receiver)
+            } catch (e: Exception) {
+                // Ignore if receiver was not registered or already unregistered
+            }
+            scanReceiver = null
+        }
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -85,10 +96,7 @@ class NewlandscannerPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     }
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
-        scanReceiver?.let {
-            binding.applicationContext.unregisterReceiver(it)
-            scanReceiver = null
-        }
+        unregisterScanReceiver()
         eventChannel.setStreamHandler(null)
         methodChannel.setMethodCallHandler(null)
         applicationContext = null

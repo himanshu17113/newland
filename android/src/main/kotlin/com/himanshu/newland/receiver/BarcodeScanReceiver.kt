@@ -24,6 +24,10 @@ class BarcodeScanReceiver(private val sink: EventChannel.EventSink?) : Broadcast
             secondaryBarcodeData = secondaryBarcodeData
         )
 
-        sink?.success(result.toMap())
+        try {
+            sink?.success(result.toMap())
+        } catch (e: Exception) {
+            // Ignore if event sink is cancelled or closed
+        }
     }
 }
